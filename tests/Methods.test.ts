@@ -1,12 +1,12 @@
 import $_ from "lodash";
+import {ChatCompletionRequestMessage, CreateChatCompletionRequest} from "openai";
 
-import {ChatCompletionRequestMessage, CreateChatCompletionRequest} from "../src/common/ChatGpt";
-import {IFormatOptions} from "../src/common/FormatOptions";
-import {Format} from "../src/common/Formats";
-import {Formatters} from "../src/common/Formatters";
-import {formatChatGptMessages, formatChatGptPrompt, formatChatGptRequest} from "../src/index";
+import {Format, FormatExpressions, IFormatOptions} from "../src/Common";
+import {formatGptMessages, formatGptPrompt, formatGptRequest} from "../src/Methods";
 
-const formats: Format[] = ["array", "csv", "html", "json", "json-list", "markdown", "table", "text", "xml", "yaml"];
+const formats: Format[] = [
+    "array", "csv", "html", "html-table", "json", "json-list", "markdown", "markdown-table", "text", "xml", "yaml"
+];
 const languages = [
     { code: "en", name: "English" },
     { code: "pl", name: "Polish" },
@@ -41,19 +41,19 @@ const requestMock: CreateChatCompletionRequest = {
 describe("Formatting ChatGPT Prompts", () => {
     it("should apply formats correctly", () => {
         $_.forEach(formats, (item) => {
-            expect(formatChatGptPrompt({ prompt: userMessageMock, format: item })).toContain(Formatters[item]);
+            expect(formatGptPrompt(userMessageMock, { format: item })).toContain(FormatExpressions[item]);
         });
     });
 
     it("should apply language correctly", () => {
         $_.forEach(languages, (item) => {
-            expect(formatChatGptPrompt({ prompt: userMessageMock, format: "json", language: item.code }))
-                .toContain(`You can write output only in ${item.name} language.`);
+            expect(formatGptPrompt(userMessageMock, { format: "json", language: item.code }))
+                .toContain(`You should write output in ${item.name} language only.`);
         });
     });
 
     it("should apply options correctly", () => {
-        const result = formatChatGptPrompt({ prompt: userMessageMock, format: "json", options: optionsMock });
+        const result = formatGptPrompt(userMessageMock, {format: "json", options: optionsMock });
         const expected = [
             "name (string)",
             "order (integer)",
@@ -73,20 +73,20 @@ describe("Formatting ChatGPT Prompts", () => {
 describe("Formatting ChatGPT Messages", () => {
     it("should apply formats correctly", () => {
         $_.forEach(formats, (item) => {
-            const result = formatChatGptMessages({ messages: messagesMock, format: item });
-            const userMessages = $_.map($_.filter(result, ["role", "user"]), "content");
-            const expected = [expect.stringContaining(Formatters[item])];
+            const result = formatGptMessages(messagesMock,{ format: item });
+            const systemMessages = $_.map($_.filter(result, ["role", "system"]), "content");
+            const expected = [expect.stringContaining(FormatExpressions[item])];
             
-            expect(result).toHaveLength(messagesMock.length);
-            expect(userMessages).toEqual(expect.arrayContaining(expected));
+            expect(result).toHaveLength(messagesMock.length + 1);
+            expect(systemMessages).toEqual(expect.arrayContaining(expected));
         });
     });
 
     it("should apply language correctly", () => {
         $_.forEach(languages, (item) => {
-            const result = formatChatGptMessages({ messages: messagesMock, format: "json", language: item.code });
+            const result = formatGptMessages(messagesMock, { format: "json", language: item.code });
             const systemMessages = $_.map($_.filter(result, ["role", "system"]), "content");
-            const expected = [expect.stringContaining(`You can write output only in ${item.name} language.`)];
+            const expected = [expect.stringContaining(`You should write output in ${item.name} language only.`)];
 
             expect(result).toHaveLength(messagesMock.length + 1);
             expect(systemMessages).toEqual(expect.arrayContaining(expected));
@@ -94,8 +94,8 @@ describe("Formatting ChatGPT Messages", () => {
     });
 
     it("should apply options correctly", () => {
-        const result = formatChatGptMessages({ messages: messagesMock, format: "json", options: optionsMock });
-        const userMessages = $_.map($_.filter(result, ["role", "user"]), "content");
+        const result = formatGptMessages(messagesMock, { format: "json", options: optionsMock });
+        const systemMessages = $_.map($_.filter(result, ["role", "system"]), "content");
         const expected = [
             "name (string)",
             "order (integer)",
@@ -109,7 +109,7 @@ describe("Formatting ChatGPT Messages", () => {
         ];
 
         $_.forEach(expected, (item) =>
-            expect(userMessages).toEqual(expect.arrayContaining([expect.stringContaining(item)]))
+            expect(systemMessages).toEqual(expect.arrayContaining([expect.stringContaining(item)]))
         );
     });
 });
@@ -117,21 +117,21 @@ describe("Formatting ChatGPT Messages", () => {
 describe("Formatting ChatGPT Requests", () => {
     it("should apply formats correctly", () => {
         $_.forEach(formats, (item) => {
-            const result = formatChatGptRequest({ request: requestMock, format: item });
-            const userMessages = $_.map($_.filter(result.messages, ["role", "user"]), "content");
-            const expected = [expect.stringContaining(Formatters[item])];
+            const result = formatGptRequest(requestMock, { format: item });
+            const systemMessages = $_.map($_.filter(result.messages, ["role", "system"]), "content");
+            const expected = [expect.stringContaining(FormatExpressions[item])];
 
             expect(result).toEqual(expect.objectContaining($_.omit(requestMock, "messages")));
-            expect(result.messages).toHaveLength(requestMock.messages.length);
-            expect(userMessages).toEqual(expect.arrayContaining(expected));
+            expect(result.messages).toHaveLength(requestMock.messages.length + 1);
+            expect(systemMessages).toEqual(expect.arrayContaining(expected));
         });
     });
 
     it("should apply language correctly", () => {
         $_.forEach(languages, (item) => {
-            const result = formatChatGptRequest({ request: requestMock, format: "json", language: item.code });
+            const result = formatGptRequest(requestMock, { format: "json", language: item.code });
             const systemMessages = $_.map($_.filter(result.messages, ["role", "system"]), "content");
-            const expected = [expect.stringContaining(`You can write output only in ${item.name} language.`)];
+            const expected = [expect.stringContaining(`You should write output in ${item.name} language only.`)];
 
             expect(result).toEqual(expect.objectContaining($_.omit(requestMock, "messages")));
             expect(result.messages).toHaveLength(requestMock.messages.length + 1);
@@ -140,8 +140,8 @@ describe("Formatting ChatGPT Requests", () => {
     });
 
     it("should apply options correctly", () => {
-        const result = formatChatGptRequest({ request: requestMock, format: "json", options: optionsMock });
-        const userMessages = $_.map($_.filter(result.messages, ["role", "user"]), "content");
+        const result = formatGptRequest(requestMock, { format: "json", options: optionsMock });
+        const systemMessages = $_.map($_.filter(result.messages, ["role", "system"]), "content");
         const expected = [
             "name (string)",
             "order (integer)",
@@ -155,7 +155,7 @@ describe("Formatting ChatGPT Requests", () => {
         ];
 
         $_.forEach(expected, (item) =>
-            expect(userMessages).toEqual(expect.arrayContaining([expect.stringContaining(item)]))
+            expect(systemMessages).toEqual(expect.arrayContaining([expect.stringContaining(item)]))
         );
     });
 });

@@ -1,21 +1,24 @@
 import $_ from "lodash";
+import {ChatCompletionRequestMessage} from "openai";
 
-import {ChatCompletionRequestMessage} from "../src/common/ChatGpt";
-import {IAttribute, ICsvFormatOptions} from "../src/common/FormatOptions";
-import {Format} from "../src/common/Formats";
-import {Formatters} from "../src/common/Formatters";
+import {
+    Format, FormatExpressions, IAttribute, ICsvFormatOptions, IFormatOptions
+} from "../src/Common";
 import {
     getAttributesText, getFormattedMessage, getFormattedText, getOutputLanguageMessage,
-    getOutputLanguageName, getOutputLanguagePrompt
-} from "../src/common/Utils";
+    getOutputLanguageName, getOutputLanguagePrompt, isAttributeArray, isCsvFormatOptions,
+    isFormatOptions
+} from "../src/Utils";
 
-const formats: Format[] = ["array", "csv", "html", "json", "json-list", "markdown", "table", "text", "xml", "yaml"];
+const formats: Format[] = [
+    "array", "csv", "html", "html-table", "json", "json-list", "markdown", "markdown-table", "text", "xml", "yaml"
+];
 const languages = [
     { code: "en", name: "English" },
     { code: "pl", name: "Polish" },
     { code: "de", name: "German" }
 ];
-const messageMock: ChatCompletionRequestMessage = { role: "user", content: "This is a user message test placeholder."};
+const messageMock: ChatCompletionRequestMessage = { role: "user", content: "This is a user message test placeholder." };
 const attributesMock: IAttribute[] = [
     { name: "name", type: "string" },
     { name: "order", type: "integer" },
@@ -32,6 +35,23 @@ const optionsMock: ICsvFormatOptions = {
     columnSeparator: ";",
     rowSeparator: "\n"
 };
+const formatOptions: IFormatOptions = {
+    attributes: [{ name: "name", type: "string" }],
+};
+const csvFormatOptions: ICsvFormatOptions = {
+    attributes: [{ name: "name", type: "string" }],
+    columnSeparator: ";",
+    rowSeparator: "\n"
+};
+
+
+const csvMock = [
+    ["name", "model", "year", "price"],
+    ["one", "test", 2012, "$2000.99"],
+    ["two", "dev", 2022, "$199.99"],
+    ["three", "backup", 1998,"$0.99"],
+    ["four", "unique", 2023, "$12000.00"]
+];
 
 describe("Utils", () => {
     it("should resolve language name from code", () => {
@@ -42,13 +62,13 @@ describe("Utils", () => {
 
     it("should resolve language prompt from code", () => {
         $_.forEach(languages, (item) => {
-            expect(getOutputLanguagePrompt(item.code)).toBe(`You can write output only in ${item.name} language.`);
+            expect(getOutputLanguagePrompt(item.code)).toBe(`You should write output in ${item.name} language only.`);
         });
     });
 
     it("should resolve language message from code", () => {
         $_.forEach(languages, (item) => {
-            const expected = { role: "system", content: `You can write output only in ${item.name} language.` };
+            const expected = { role: "system", content: `You should write output in ${item.name} language only.` };
             expect(getOutputLanguageMessage(item.code)).toEqual(expect.objectContaining(expected));
         });
     });
@@ -56,7 +76,7 @@ describe("Utils", () => {
     it("should resolve formatted message", () => {
         const result = getFormattedMessage(messageMock, "csv", optionsMock);
         const msg = messageMock.content;
-        const format = Formatters.csv;
+        const format = `You should write output only in ${FormatExpressions.csv} format.`;
         const attr = [
             "name (string)",
             "order (integer)",
@@ -68,9 +88,9 @@ describe("Utils", () => {
             "info (string, custom placeholder)",
             "summary (string, min length 25 characters and max length 50 characters, custom placeholder)",
         ];
-        const attrTxt = "I want the following to be included in it:";
-        const colSeparator = "Use ; as column separator.";
-        const rowSeparator = "Use \n as row separator.";
+        const attrTxt = "You should include the following in it:";
+        const colSeparator = "You should use ; as column separator.";
+        const rowSeparator = "You should use \n as row separator.";
         const expectedContent = `${msg} ${format} ${attrTxt} ${$_.join(attr, ", ")}. ${colSeparator} ${rowSeparator}`;
         const expected = { role: messageMock.role, content: expectedContent };
         
@@ -93,7 +113,7 @@ describe("Utils", () => {
             ];
             const expectedResult = $_.map(expected, (item) => $_.includes(result, item));
 
-            expect(result).toContain(Formatters[format]);
+            expect(result).toContain(FormatExpressions[format]);
             expect(expectedResult).toHaveLength(9);
             expect(expectedResult).not.toContain(false);
         });
@@ -116,5 +136,29 @@ describe("Utils", () => {
         ];
 
         $_.forEach(expected, (item) => expect(result).toEqual(expect.stringContaining(item)));
+    });
+
+    it("should convert CSV to array", () => {
+        // const csv =  csvMock.map(
+        //     row => row.map(item => (typeof item === "string" ? `"${item}"` : item)).join(";")).join("\n");
+        // const csvArray = csvToArray(csv, undefined, ";");
+
+        // console.log(JSON.stringify(csv));
+        // expect(csvArray.header).toHaveLength(4);
+        // expect(csvArray.rows).toHaveLength(3);
+    });
+
+    it("should recognize FormatOptions", () => {
+        expect(isFormatOptions(formatOptions)).toBe(true);
+        expect(isCsvFormatOptions(formatOptions)).toBe(false);
+    });
+    
+    it("should recognize CsvFormatOptions", () => {
+        expect(isFormatOptions(csvFormatOptions)).toBe(true);
+        expect(isCsvFormatOptions(csvFormatOptions)).toBe(true);
+    });
+
+    it("should recognize AttributeArray", () => {
+        expect(isAttributeArray(attributesMock)).toBe(true);
     });
 });

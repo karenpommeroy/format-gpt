@@ -7,7 +7,7 @@
 
 
 **FormatGPT** is a robust library designed to sanitize output provided by ChatGPT.
-It provides a consistent and well defined method for retrieving the data from ChatGPT by acting as a middle man between your code and ChatGPT API.
+It provides a consistent and well defined methods for retrieving the data from ChatGPT by acting as a middle man between your code and ChatGPT API.
 It supports various formats such as:
 - text
 - json
@@ -44,13 +44,14 @@ yarn add format-gpt
 
 ## Usage
 
-Here's a quick example to get you started:
+Here is quick example on how to format prompts for `chat-gpt`:
 
 ```typescript
-import formatGPT from "format-gpt";
+import {formatGptPrompt} from "format-gpt";
 
-formatGpt.format({
-	format: "json",
+formatGpt.format(prompt, {
+	format: "json-list",
+	language: "en",
 	options: {
 		attributes: [
 			{ name: "name", type: "string" },
@@ -58,76 +59,69 @@ formatGpt.format({
 			{ name: "released", type: "date" },
 			{ name: "price", type: "decimal" }
 		]
-	},
-	language: "en"
+	}
 });
 ```
+
+And another example on how communicate with `chat-gpt` through provided wrapper:
+
+```typescript
+import FormatGPT from "format-gpt";
+
+// Initialize wrapper providing OpenAIApi instance
+const gptFormatter = new GptFormatter(openai);
+
+// Use provided FormatGPT wrapper methods instead of standard OpenAIApi ones' 
+// Below is an example using wrapper in place of `createChatCompletion` method.
+
+const yourFormattedOutput = await this.gptFormatter.makeRequestToChatGpt(requestParams, requestOptions, output);
+
+```
+Parameters `requestParams` and `requestOptions` are the same ones as passed to `createChatCompletion` method.
+
+Parameter `output` is where the magic happens. You to define how you would like the output to be structured and under the hood **FormatGPT** transforms your requests and prompts to achieve desired data format, etc.
+
 
 ## API Reference
 The default export is `formatChatGptPrompt`.
 
 
-#### formatChatGptPrompt
+#### formatGptPrompt
 
 ```typescript
-formatChatGptPrompt({
-  prompt: string,
-  format: Format,
-  options?: FormatOptions,
-  language?: string
-}): string;
+formatGptPrompt(prompt: string, output: IOutputConfig): string;
 ```
 ##### props
 
 * `prompt (string)` - content of the prompt for chat-gpt
-* `format (Format)` - format in which to return output from chat-gpt
-* `options (FormatOptions)`
+* `output (IOutputConfig)`
+	* `format (dtring)` - format of data retrieved from `chat-gpt`
 	* `attributes: (IAttribute[])`- array with attribute definitions
+	* `language (string)` - language code (determines language of retrieved data)
 	* `columnSeparator (string)`- column separator (for CSV format, default: ",")
 	* `rowSeparator (string)`- row separator (for CSV format. default: \n)
-* `language (string)` - language code (example: en, pl)
 
-#### formatChatGptMessages
+#### formatGptMessages
 
 ```typescript
-formatChatGptMessages({
-  messages: ChatCompletionRequestMessage[],
-  format: Format,
-  options?: FormatOptions,
-  language?: string
-}): ChatCompletionRequestMessage[];
+formatGptMessages(messages: ChatCompletionRequestMessage[], output: IOutputConfig): ChatCompletionRequestMessage[];
 ```
 
 ##### props
 
 * `messages (ChatCompletionRequestMessage[])` - messages sent to chat-gpt api
-* `format (Format)` - format in which to return output from chat-gpt
-* `options (FormatOptions)`
-	* `attributes: (IAttribute[])`- array with attribute definitions
-	* `columnSeparator (string)`- column separator (for CSV format, default: ",")
-	* `rowSeparator (string)`- row separator (for CSV format. default: \n)
-* `language (string)` - language code (example: en, pl)
+* `output (IOutputConfig)` - output configuration
 
-#### formatChatGptRequest
+#### formatGptRequest
 
 ```typescript
-formatChatGptRequest({
-  request: CreateChatCompletionRequest,
-  format: Format,
-  options?: FormatOptions,
-  language?: string
-}): CreateChatCompletionRequest;
+formatGptRequest(request: CreateChatCompletionRequest, output: IOutputConfig): CreateChatCompletionRequest;
 ```
 
 ##### props
 
 * `request (CreateChatCompletionRequest)` - request config for chat-gpt api
-* `format (Format)` - format in which to return output from chat-gpt
-* `options (FormatOptions)`
-	* `attributes: (IAttribute[])`- array with attribute definitions
-	* `columnSeparator (string)`- column separator (for CSV format, default: ",")
-	* `rowSeparator (string)`- row separator (for CSV format. default: \n)
-* `language (string)` - language code (example: en, pl)
+* `output (IOutputConfig)` - output configuration
 <br />
 
 #### Format

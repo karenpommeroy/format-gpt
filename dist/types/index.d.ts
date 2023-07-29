@@ -1,3 +1,5 @@
-import format from "./functions/Format";
-export * from "./functions/Format";
-export default format;
+import { Formatter } from "./Formatter";
+export * from "./Methods";
+export * from "./Formatter";
+export { IOutputConfig } from "./Common";
+export default Formatter;
