@@ -1,16 +1,26 @@
 import $_ from "lodash";
-import {ChatCompletionRequestMessage, CreateChatCompletionRequest} from "openai";
+import { ChatCompletionRequestMessage, CreateChatCompletionRequest } from "openai";
 
-import {Format, FormatExpressions, IFormatOptions} from "../src/Common";
-import {formatGptMessages, formatGptPrompt, formatGptRequest} from "../src/Methods";
+import { Format, FormatExpressions, IFormatOptions } from "../src/Common";
+import { formatGptMessages, formatGptPrompt, formatGptRequest } from "../src/Methods";
 
 const formats: Format[] = [
-    "array", "csv", "html", "html-table", "json", "json-list", "markdown", "markdown-table", "text", "xml", "yaml"
+    "array",
+    "csv",
+    "html",
+    "html-table",
+    "json",
+    "json-list",
+    "markdown",
+    "markdown-table",
+    "text",
+    "xml",
+    "yaml",
 ];
 const languages = [
     { code: "en", name: "English" },
     { code: "pl", name: "Polish" },
-    { code: "de", name: "German" }
+    { code: "de", name: "German" },
 ];
 const optionsMock: IFormatOptions = {
     attributes: [
@@ -21,9 +31,9 @@ const optionsMock: IFormatOptions = {
         { name: "date", type: "date" },
         { name: "comments", type: "string", maxLength: 50 },
         { name: "description", type: "string", minLength: 50, maxLength: 100 },
-        { name: "info", type: "string", custom: "custom placeholder"},
-        { name: "summary", type: "string", minLength: 25, maxLength: 50, custom: "custom placeholder"},
-    ]
+        { name: "info", type: "string", custom: "custom placeholder" },
+        { name: "summary", type: "string", minLength: 25, maxLength: 50, custom: "custom placeholder" },
+    ],
 };
 const systemMessageMock = "This is a system message test placeholder.";
 const userMessageMock = "This is a user message test placeholder.";
@@ -47,13 +57,14 @@ describe("Formatting ChatGPT Prompts", () => {
 
     it("should apply language correctly", () => {
         $_.forEach(languages, (item) => {
-            expect(formatGptPrompt(userMessageMock, { format: "json", language: item.code }))
-                .toContain(`You should write output in ${item.name} language only.`);
+            expect(formatGptPrompt(userMessageMock, { format: "json", language: item.code })).toContain(
+                `You should write output in ${item.name} language only.`,
+            );
         });
     });
 
     it("should apply options correctly", () => {
-        const result = formatGptPrompt(userMessageMock, {format: "json", options: optionsMock });
+        const result = formatGptPrompt(userMessageMock, { format: "json", options: optionsMock });
         const expected = [
             "name (string)",
             "order (integer)",
@@ -73,10 +84,10 @@ describe("Formatting ChatGPT Prompts", () => {
 describe("Formatting ChatGPT Messages", () => {
     it("should apply formats correctly", () => {
         $_.forEach(formats, (item) => {
-            const result = formatGptMessages(messagesMock,{ format: item });
+            const result = formatGptMessages(messagesMock, { format: item });
             const systemMessages = $_.map($_.filter(result, ["role", "system"]), "content");
             const expected = [expect.stringContaining(FormatExpressions[item])];
-            
+
             expect(result).toHaveLength(messagesMock.length + 1);
             expect(systemMessages).toEqual(expect.arrayContaining(expected));
         });
@@ -109,7 +120,7 @@ describe("Formatting ChatGPT Messages", () => {
         ];
 
         $_.forEach(expected, (item) =>
-            expect(systemMessages).toEqual(expect.arrayContaining([expect.stringContaining(item)]))
+            expect(systemMessages).toEqual(expect.arrayContaining([expect.stringContaining(item)])),
         );
     });
 });
@@ -155,7 +166,7 @@ describe("Formatting ChatGPT Requests", () => {
         ];
 
         $_.forEach(expected, (item) =>
-            expect(systemMessages).toEqual(expect.arrayContaining([expect.stringContaining(item)]))
+            expect(systemMessages).toEqual(expect.arrayContaining([expect.stringContaining(item)])),
         );
     });
 });

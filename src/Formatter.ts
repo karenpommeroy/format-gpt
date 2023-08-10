@@ -9,12 +9,12 @@ import {formatGptRequest} from "./Methods";
 export type StreamResult = {
     id: string;
     chunks: Promise<any>[];
-}
+};
 
 export type ChatGptResult = {
     id: string;
     content: any;
-}
+};
 
 export type UpdateCallback = (params: Partial<UpdateCallbackParams>) => void;
 export type TransformCallback = (params: Partial<TransformCallbackParams>) => Promise<any>;
@@ -24,7 +24,7 @@ export type UpdateCallbackParams = {
     id: string;
     data: any;
     progress?: number;
-};
+}
 
 export type TransformCallbackParams = {
     item: any;
@@ -59,16 +59,16 @@ export class Formatter {
     public async makeRequestToChatGpt(
         request: CreateChatCompletionRequest,
         options: AxiosRequestConfig<any> | undefined,
-        output: IOutputConfig = {}
+        output: IOutputConfig = {},
     ): Promise<ChatGptResult> {
         const newRequest = formatGptRequest(request, output);
         const outputParser = this.outputParsers[output.format ?? "text"] ?? $_.identity;
-        
+
         const response = await this.openai.createChatCompletion(newRequest, options as any);
         const id = $_.get(response, "data.id");
         const content = $_.get(response, "data.choices.0.message.content", "");
-        
-        return { id, content: outputParser(content)};
+
+        return { id, content: outputParser(content) };
     }
 
     public async makeStreamRequestToChatGpt(
@@ -87,7 +87,7 @@ export class Formatter {
 
         return await new Promise<any>((resolve, reject) => {
             const streamResult: StreamResult = { id: "", chunks: [] };
-           
+
             let dataText = "";
 
             const jsonStreamReader = async (data: Buffer) => {
@@ -99,33 +99,34 @@ export class Formatter {
                         try {
                             const data = JSON.parse(payload.replace("data: ", ""));
                             const chunk = $_.get(data, "choices[0].delta.content");
-                            
+
                             if (!chunk) continue;
 
                             dataText += chunk;
-                        
+
                             const matches = dataText.match(jsonEntryRegex);
                             const nextMatch = $_.first(matches);
-            
+
                             if (!nextMatch) continue;
 
                             try {
                                 const entry = JSON.parse($_.trimEnd(nextMatch, " ,\r\n\t"));
                                 const entryWithId = { id: $_.toString(Date.now()), ...entry };
-                                const entryAfterTransform = $_.isFunction(onTransform) ?
-                                    onTransform(entryWithId) : entryWithId;
-                                    
+                                const entryAfterTransform = $_.isFunction(onTransform)
+                                    ? onTransform(entryWithId)
+                                    : entryWithId;
+
                                 dataText = $_.replace(dataText, nextMatch, "");
-            
+
                                 streamResult.id = data.id;
                                 streamResult.chunks.push(entryAfterTransform);
-                                
+
                                 if (!$_.isFunction(onUpdate)) continue;
-                                
+
                                 onUpdate({
                                     id: data.id,
-                                    data:  $_.isFunction(onTransform) ? await entryAfterTransform : entryAfterTransform,
-                                    progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined
+                                    data: $_.isFunction(onTransform) ? await entryAfterTransform : entryAfterTransform,
+                                    progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined,
                                 });
                             } catch (error) {
                                 // Chunk incomplete, parsing not possible
@@ -147,32 +148,31 @@ export class Formatter {
                         try {
                             const data = JSON.parse(payload.replace("data: ", ""));
                             const chunk = $_.get(data, "choices[0].delta.content");
-                            
+
                             if (!chunk) continue;
 
                             dataText += chunk;
-                        
+
                             const matches = dataText.match(arrayEntryRegex);
                             const nextMatch = $_.first(matches);
-            
+
                             if (!nextMatch) continue;
 
                             try {
                                 const entry = JSON.parse($_.trim(nextMatch, " ,\r\n\t"));
-                                const entryAfterTransform = $_.isFunction(onTransform) ?
-                                    onTransform(entry) : entry;
-                                    
+                                const entryAfterTransform = $_.isFunction(onTransform) ? onTransform(entry) : entry;
+
                                 dataText = $_.replace(dataText, nextMatch, "");
-            
+
                                 streamResult.id = data.id;
                                 streamResult.chunks.push(entryAfterTransform);
-                                
+
                                 if (!$_.isFunction(onUpdate)) continue;
-                                
+
                                 onUpdate({
                                     id: data.id,
                                     data: $_.isFunction(onTransform) ? await entryAfterTransform : entryAfterTransform,
-                                    progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined
+                                    progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined,
                                 });
                             } catch (error) {
                                 // Chunk incomplete, parsing not possible
@@ -194,21 +194,19 @@ export class Formatter {
                         try {
                             const data = JSON.parse(payload.replace("data: ", ""));
                             const chunk = $_.get(data, "choices[0].delta.content");
-                            
+
                             if (!chunk) continue;
 
                             streamResult.id = data.id;
                             streamResult.chunks += chunk;
 
                             if (!$_.isFunction(onUpdate)) continue;
-                                
+
                             onUpdate({
                                 id: data.id,
                                 data: chunk,
-                                progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined
+                                progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined,
                             });
-
-
                         } catch (error) {
                             console.log(`Chunk could not be parsed.\n${error}`);
                             continue;
@@ -230,15 +228,16 @@ export class Formatter {
                 [Formats.XML]: textStreamReader,
                 [Formats.YAML]: textStreamReader,
             };
-            
+
             const reader = outputStreamReaders[$_.get(output, "format", Formats.TEXT)];
-            
+
             stream.on("data", reader);
 
             stream.on("end", () => {
-                setTimeout(async () => { 
-                    const content = $_.isFunction(onTransform) ?
-                        await Promise.all(streamResult.chunks) : streamResult.chunks;
+                setTimeout(async () => {
+                    const content = $_.isFunction(onTransform)
+                        ? await Promise.all(streamResult.chunks)
+                        : streamResult.chunks;
                     const data = { id: streamResult.id, content };
                     $_.isFunction(onEnd) && onEnd(data);
                     resolve(data);
@@ -253,7 +252,7 @@ export class Formatter {
 
             const signal = $_.get(options, "signal") as AbortSignal;
             if (!signal) return;
-            
+
             signal.addEventListener("abort", () => {
                 response.request.abort();
                 reject({ message: signal.reason });

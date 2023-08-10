@@ -3,12 +3,12 @@ import TerserPlugin from "terser-webpack-plugin";
 import {Configuration, ProgressPlugin} from "webpack";
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace NodeJS {
-      interface ProcessEnv {
-          NODE_ENV?: "none" | "development" | "production"
-      }
-  }
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace NodeJS {
+        interface ProcessEnv {
+            NODE_ENV?: "none" | "development" | "production";
+        }
+    }
 }
 
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -22,8 +22,8 @@ const config: Configuration = {
             new TerserPlugin({
                 terserOptions: {
                     format: {
-                        comments: false
-                    }
+                        comments: false,
+                    },
                 },
                 extractComments: false,
             }),
@@ -51,9 +51,7 @@ const config: Configuration = {
     resolve: {
         extensions: [".tsx", ".ts", ".jsx", ".js", "json"],
     },
-    plugins: [
-        new ProgressPlugin()
-    ]
+    plugins: [new ProgressPlugin()],
 };
 
 export default config;

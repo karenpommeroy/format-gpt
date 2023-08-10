@@ -1,4 +1,4 @@
-const ALL_FORMATS = <const> [
+const ALL_FORMATS = <const>[
     "array",
     "csv",
     "html",
@@ -9,12 +9,12 @@ const ALL_FORMATS = <const> [
     "markdown-table",
     "text",
     "xml",
-    "yaml"
+    "yaml",
 ];
 
 export type FormatTuple = typeof ALL_FORMATS;
 
-export type Format = FormatTuple[number]; 
+export type Format = FormatTuple[number];
 
 export enum Formats {
     ARRAY = "array",
@@ -27,7 +27,7 @@ export enum Formats {
     MARKDOWNTABLE = "markdown-table",
     TEXT = "text",
     XML = "xml",
-    YAML = "yaml"
+    YAML = "yaml",
 }
 
 export interface IOutputConfig {
@@ -54,10 +54,7 @@ export interface ICsvFormatOptions extends IFormatOptions {
     rowSeparator?: string;
 }
 
-export type FormatOptions =
-    IFormatOptions |
-    ICsvFormatOptions |
-    undefined;
+export type FormatOptions = IFormatOptions | ICsvFormatOptions | undefined;
 
 export const FormatExpressions = {
     [Formats.ARRAY]: "JavaScript Array of Arrays",

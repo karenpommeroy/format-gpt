@@ -29,6 +29,17 @@ export declare class Formatter {
     private openai;
     private outputParsers;
     constructor(openai: OpenAIApi);
-    makeRequestToChatGpt(request: CreateChatCompletionRequest, options: AxiosRequestConfig<any> | undefined, output?: IOutputConfig): Promise<ChatGptResult>;
-    makeStreamRequestToChatGpt(request: CreateChatCompletionRequest, options: AxiosRequestConfig<any> | undefined, output?: IOutputConfig, onUpdate?: UpdateCallback, onTransform?: TransformCallback, onEnd?: EndCallback): Promise<ChatGptResult>;
+    makeRequestToChatGpt(
+        request: CreateChatCompletionRequest,
+        options: AxiosRequestConfig<any> | undefined,
+        output?: IOutputConfig,
+    ): Promise<ChatGptResult>;
+    makeStreamRequestToChatGpt(
+        request: CreateChatCompletionRequest,
+        options: AxiosRequestConfig<any> | undefined,
+        output?: IOutputConfig,
+        onUpdate?: UpdateCallback,
+        onTransform?: TransformCallback,
+        onEnd?: EndCallback,
+    ): Promise<ChatGptResult>;
 }

@@ -1,22 +1,36 @@
 import $_ from "lodash";
-import {ChatCompletionRequestMessage} from "openai";
+import { ChatCompletionRequestMessage } from "openai";
 
+import { Format, FormatExpressions, IAttribute, ICsvFormatOptions, IFormatOptions } from "../src/Common";
 import {
-    Format, FormatExpressions, IAttribute, ICsvFormatOptions, IFormatOptions
-} from "../src/Common";
-import {
-    getAttributesText, getFormattedMessage, getFormattedText, getOutputLanguageMessage,
-    getOutputLanguageName, getOutputLanguagePrompt, isAttributeArray, isCsvFormatOptions,
-    isFormatOptions
+    getAttributesText,
+    getFormattedMessage,
+    getFormattedText,
+    getOutputLanguageMessage,
+    getOutputLanguageName,
+    getOutputLanguagePrompt,
+    isAttributeArray,
+    isCsvFormatOptions,
+    isFormatOptions,
 } from "../src/Utils";
 
 const formats: Format[] = [
-    "array", "csv", "html", "html-table", "json", "json-list", "markdown", "markdown-table", "text", "xml", "yaml"
+    "array",
+    "csv",
+    "html",
+    "html-table",
+    "json",
+    "json-list",
+    "markdown",
+    "markdown-table",
+    "text",
+    "xml",
+    "yaml",
 ];
 const languages = [
     { code: "en", name: "English" },
     { code: "pl", name: "Polish" },
-    { code: "de", name: "German" }
+    { code: "de", name: "German" },
 ];
 const messageMock: ChatCompletionRequestMessage = { role: "user", content: "This is a user message test placeholder." };
 const attributesMock: IAttribute[] = [
@@ -27,13 +41,13 @@ const attributesMock: IAttribute[] = [
     { name: "date", type: "date" },
     { name: "comments", type: "string", maxLength: 50 },
     { name: "description", type: "string", minLength: 50, maxLength: 100 },
-    { name: "info", type: "string", custom: "custom placeholder"},
-    { name: "summary", type: "string", minLength: 25, maxLength: 50, custom: "custom placeholder"},
+    { name: "info", type: "string", custom: "custom placeholder" },
+    { name: "summary", type: "string", minLength: 25, maxLength: 50, custom: "custom placeholder" },
 ];
 const optionsMock: ICsvFormatOptions = {
     attributes: attributesMock,
     columnSeparator: ";",
-    rowSeparator: "\n"
+    rowSeparator: "\n",
 };
 const formatOptions: IFormatOptions = {
     attributes: [{ name: "name", type: "string" }],
@@ -41,16 +55,15 @@ const formatOptions: IFormatOptions = {
 const csvFormatOptions: ICsvFormatOptions = {
     attributes: [{ name: "name", type: "string" }],
     columnSeparator: ";",
-    rowSeparator: "\n"
+    rowSeparator: "\n",
 };
-
 
 const csvMock = [
     ["name", "model", "year", "price"],
     ["one", "test", 2012, "$2000.99"],
     ["two", "dev", 2022, "$199.99"],
-    ["three", "backup", 1998,"$0.99"],
-    ["four", "unique", 2023, "$12000.00"]
+    ["three", "backup", 1998, "$0.99"],
+    ["four", "unique", 2023, "$12000.00"],
 ];
 
 describe("Utils", () => {
@@ -93,7 +106,7 @@ describe("Utils", () => {
         const rowSeparator = "You should use \n as row separator.";
         const expectedContent = `${msg} ${format} ${attrTxt} ${$_.join(attr, ", ")}. ${colSeparator} ${rowSeparator}`;
         const expected = { role: messageMock.role, content: expectedContent };
-        
+
         expect(result).toEqual(expect.objectContaining(expected));
     });
 
@@ -117,7 +130,7 @@ describe("Utils", () => {
             expect(expectedResult).toHaveLength(9);
             expect(expectedResult).not.toContain(false);
         });
-        
+
         expect(true);
     });
 
@@ -142,7 +155,6 @@ describe("Utils", () => {
         // const csv =  csvMock.map(
         //     row => row.map(item => (typeof item === "string" ? `"${item}"` : item)).join(";")).join("\n");
         // const csvArray = csvToArray(csv, undefined, ";");
-
         // console.log(JSON.stringify(csv));
         // expect(csvArray.header).toHaveLength(4);
         // expect(csvArray.rows).toHaveLength(3);
@@ -152,7 +164,7 @@ describe("Utils", () => {
         expect(isFormatOptions(formatOptions)).toBe(true);
         expect(isCsvFormatOptions(formatOptions)).toBe(false);
     });
-    
+
     it("should recognize CsvFormatOptions", () => {
         expect(isFormatOptions(csvFormatOptions)).toBe(true);
         expect(isCsvFormatOptions(csvFormatOptions)).toBe(true);

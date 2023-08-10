@@ -1,7 +1,7 @@
-import {Formatter} from "./Formatter";
+import { Formatter } from "./Formatter";
 
 export * from "./Methods";
 export * from "./Formatter";
-export {IOutputConfig} from "./Common";
+export { IOutputConfig } from "./Common";
 
 export default Formatter;

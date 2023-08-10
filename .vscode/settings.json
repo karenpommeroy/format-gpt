@@ -6,7 +6,8 @@
   },
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
@@ -14,15 +15,17 @@
     "**/CVS": true,
     "**/.DS_Store": true,
     "**/Thumbs.db": true,
+    "**/.yarn/*/**": true,
     "**/node_modules": true,
     "**/node_modules/*/**": true,
-    "**/.yarn/*/**": true,
     "node_modules/*/**": true,
     "**/yarn.lock": true,
     "**/.pnp.cjs": true,
     "**/.pnp.loader.mjs": true,
-    "**/.vscode/**": true,
+    "**/.vscode/**": false,
     "**/.yarn/**": true
-  },
-  "eslint.nodePath": ".yarn/sdks"
+},
+"eslint.nodePath": ".yarn/sdks",
+"explorerExclude.backup": {},
+"editor.formatOnSave": true
 }
