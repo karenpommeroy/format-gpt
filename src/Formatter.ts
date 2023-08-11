@@ -24,7 +24,7 @@ export type UpdateCallbackParams = {
     id: string;
     data: any;
     progress?: number;
-}
+};
 
 export type TransformCallbackParams = {
     item: any;
@@ -68,7 +68,7 @@ export class Formatter {
         const id = $_.get(response, "data.id");
         const content = $_.get(response, "data.choices.0.message.content", "");
 
-        return { id, content: outputParser(content) };
+        return {id, content: outputParser(content)};
     }
 
     public async makeStreamRequestToChatGpt(
@@ -79,14 +79,14 @@ export class Formatter {
         onTransform?: TransformCallback,
         onEnd?: EndCallback,
     ): Promise<ChatGptResult> {
-        const newRequest = formatGptRequest($_.assign({}, request, { stream: true }), output);
-        const newOptions: any = $_.assign({}, options, { responseType: "stream" });
+        const newRequest = formatGptRequest($_.assign({}, request, {stream: true}), output);
+        const newOptions: any = $_.assign({}, options, {responseType: "stream"});
         const response = await this.openai.createChatCompletion(newRequest, newOptions);
         const stream = response.data as unknown as IncomingMessage;
         const size = $_.get(output, "size");
 
         return await new Promise<any>((resolve, reject) => {
-            const streamResult: StreamResult = { id: "", chunks: [] };
+            const streamResult: StreamResult = {id: "", chunks: []};
 
             let dataText = "";
 
@@ -111,7 +111,7 @@ export class Formatter {
 
                             try {
                                 const entry = JSON.parse($_.trimEnd(nextMatch, " ,\r\n\t"));
-                                const entryWithId = { id: $_.toString(Date.now()), ...entry };
+                                const entryWithId = {id: $_.toString(Date.now()), ...entry};
                                 const entryAfterTransform = $_.isFunction(onTransform)
                                     ? onTransform(entryWithId)
                                     : entryWithId;
@@ -238,14 +238,14 @@ export class Formatter {
                     const content = $_.isFunction(onTransform)
                         ? await Promise.all(streamResult.chunks)
                         : streamResult.chunks;
-                    const data = { id: streamResult.id, content };
+                    const data = {id: streamResult.id, content};
                     $_.isFunction(onEnd) && onEnd(data);
                     resolve(data);
                 }, 10);
             });
 
             stream.on("error", (error: Error) => {
-                const data = { id: streamResult.id, error };
+                const data = {id: streamResult.id, error};
                 $_.isFunction(onEnd) && onEnd(data);
                 reject(data);
             });
@@ -255,7 +255,7 @@ export class Formatter {
 
             signal.addEventListener("abort", () => {
                 response.request.abort();
-                reject({ message: signal.reason });
+                reject({message: signal.reason});
             });
         });
     }

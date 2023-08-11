@@ -1,7 +1,7 @@
 import $_ from "lodash";
-import { ChatCompletionRequestMessage } from "openai";
+import {ChatCompletionRequestMessage} from "openai";
 
-import { Format, FormatExpressions, IAttribute, ICsvFormatOptions, IFormatOptions } from "../src/Common";
+import {Format, FormatExpressions, IAttribute, ICsvFormatOptions, IFormatOptions} from "../src/Common";
 import {
     getAttributesText,
     getFormattedMessage,
@@ -28,21 +28,21 @@ const formats: Format[] = [
     "yaml",
 ];
 const languages = [
-    { code: "en", name: "English" },
-    { code: "pl", name: "Polish" },
-    { code: "de", name: "German" },
+    {code: "en", name: "English"},
+    {code: "pl", name: "Polish"},
+    {code: "de", name: "German"},
 ];
-const messageMock: ChatCompletionRequestMessage = { role: "user", content: "This is a user message test placeholder." };
+const messageMock: ChatCompletionRequestMessage = {role: "user", content: "This is a user message test placeholder."};
 const attributesMock: IAttribute[] = [
-    { name: "name", type: "string" },
-    { name: "order", type: "integer" },
-    { name: "value", type: "decimal" },
-    { name: "enabled", type: "boolean" },
-    { name: "date", type: "date" },
-    { name: "comments", type: "string", maxLength: 50 },
-    { name: "description", type: "string", minLength: 50, maxLength: 100 },
-    { name: "info", type: "string", custom: "custom placeholder" },
-    { name: "summary", type: "string", minLength: 25, maxLength: 50, custom: "custom placeholder" },
+    {name: "name", type: "string"},
+    {name: "order", type: "integer"},
+    {name: "value", type: "decimal"},
+    {name: "enabled", type: "boolean"},
+    {name: "date", type: "date"},
+    {name: "comments", type: "string", maxLength: 50},
+    {name: "description", type: "string", minLength: 50, maxLength: 100},
+    {name: "info", type: "string", custom: "custom placeholder"},
+    {name: "summary", type: "string", minLength: 25, maxLength: 50, custom: "custom placeholder"},
 ];
 const optionsMock: ICsvFormatOptions = {
     attributes: attributesMock,
@@ -50,10 +50,10 @@ const optionsMock: ICsvFormatOptions = {
     rowSeparator: "\n",
 };
 const formatOptions: IFormatOptions = {
-    attributes: [{ name: "name", type: "string" }],
+    attributes: [{name: "name", type: "string"}],
 };
 const csvFormatOptions: ICsvFormatOptions = {
-    attributes: [{ name: "name", type: "string" }],
+    attributes: [{name: "name", type: "string"}],
     columnSeparator: ";",
     rowSeparator: "\n",
 };
@@ -81,7 +81,7 @@ describe("Utils", () => {
 
     it("should resolve language message from code", () => {
         $_.forEach(languages, (item) => {
-            const expected = { role: "system", content: `You should write output in ${item.name} language only.` };
+            const expected = {role: "system", content: `You should write output in ${item.name} language only.`};
             expect(getOutputLanguageMessage(item.code)).toEqual(expect.objectContaining(expected));
         });
     });
@@ -105,7 +105,7 @@ describe("Utils", () => {
         const colSeparator = "You should use ; as column separator.";
         const rowSeparator = "You should use \n as row separator.";
         const expectedContent = `${msg} ${format} ${attrTxt} ${$_.join(attr, ", ")}. ${colSeparator} ${rowSeparator}`;
-        const expected = { role: messageMock.role, content: expectedContent };
+        const expected = {role: messageMock.role, content: expectedContent};
 
         expect(result).toEqual(expect.objectContaining(expected));
     });

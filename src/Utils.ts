@@ -1,7 +1,7 @@
 import $_ from "lodash";
-import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum } from "openai";
+import {ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum} from "openai";
 
-import { Format, FormatExpressions, FormatOptions, IAttribute, ICsvFormatOptions } from "./Common";
+import {Format, FormatExpressions, FormatOptions, IAttribute, ICsvFormatOptions} from "./Common";
 
 export const isCsvFormatOptions = (item: any): item is ICsvFormatOptions =>
     "columnSeparator" in item || "rowSeparator" in item;
@@ -12,7 +12,7 @@ export const isAttributeArray = (item: any): item is IAttribute[] =>
     $_.isArray(item) && $_.some(["name", "type", "minLength", "maxLength", "custom"], (prop) => prop in item[0]);
 
 export const getOutputLanguageName = (code = "en") => {
-    const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
+    const languageNames = new Intl.DisplayNames(["en"], {type: "language"});
 
     return languageNames.of(code);
 };
@@ -26,7 +26,7 @@ export const getOutputLanguageMessage = (code: string): ChatCompletionRequestMes
 });
 
 export const getFormattedMessage = (item: ChatCompletionRequestMessage, format: Format, options?: FormatOptions) =>
-    $_.assign({}, item, { content: `${item.content} ${getFormattedText(format, options)}` });
+    $_.assign({}, item, {content: `${item.content} ${getFormattedText(format, options)}`});
 
 export const getFormattedText = (format: Format = "text", options?: FormatOptions) => {
     const parts = [];
@@ -40,7 +40,7 @@ export const getFormattedText = (format: Format = "text", options?: FormatOption
     }
 
     if (isCsvFormatOptions(options)) {
-        const { columnSeparator = ",", rowSeparator = "\n" } = options;
+        const {columnSeparator = ",", rowSeparator = "\n"} = options;
 
         parts.push(`You should use ${columnSeparator} as column separator.`);
         parts.push(`You should use ${rowSeparator} as row separator.`);
@@ -75,8 +75,8 @@ export const getAttributesText = (attributes: IAttribute[]): string => {
     return $_.join(attributeStrings, ", ");
 };
 
-export const csvToArray = (strData: string, header = [], strDelimiter = ","): { header: any[]; rows: any[][] } => {
-    if (!strData) return { header, rows: [] };
+export const csvToArray = (strData: string, header = [], strDelimiter = ","): {header: any[]; rows: any[][]} => {
+    if (!strData) return {header, rows: []};
 
     const objPattern = new RegExp(
         `(\\${strDelimiter}|\\r?\\n|\\r|^)(?:"([^"]*(?:""[^"]*)*)"|([^"\\${strDelimiter}\\r\\n]*))`,

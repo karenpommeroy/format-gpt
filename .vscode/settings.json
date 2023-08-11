@@ -24,8 +24,8 @@
     "**/.pnp.loader.mjs": true,
     "**/.vscode/**": false,
     "**/.yarn/**": true
-},
-"eslint.nodePath": ".yarn/sdks",
-"explorerExclude.backup": {},
-"editor.formatOnSave": true
+  },
+  "eslint.nodePath": ".yarn/sdks",
+  "explorerExclude.backup": {},
+  "editor.formatOnSave": true
 }
