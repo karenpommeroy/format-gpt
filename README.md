@@ -1,5 +1,5 @@
 <figure>
-    <img src="/assets/img/logo.png" alt="Albuquerque, New Mexico">
+    <img src="/assets/img/logo.png" alt="format-gpt">
     <figcaption align="center">
 		<em>Sanitize ChatGPT output and format it the way you want!</em>
 	</figcaption>
@@ -24,12 +24,18 @@ Additionally each output format can be easily customized to suit your needs.
 
 ## Table of Contents
 
-1. [Installation](#installation)
-2. [Usage](#usage)
-3. [API Reference](#api-reference)
-4. [Building](#building)
-5. [Tests](#tests)
-6. [License](#license)
+-   [Table of Contents](#table-of-contents)
+-   [Installation](#installation)
+-   [Usage](#usage)
+-   [API Reference](#api-reference)
+    -   [_formatGptPrompt_](#formatgptprompt)
+    -   [_formatGptMessages_](#formatgptmessages)
+    -   [_formatGptRequest_](#formatgptrequest)
+    -   [_Format_](#format)
+    -   [_IAttribute_](#iattribute)
+-   [Building](#building)
+-   [Tests](#tests)
+-   [License](#license)
 
 ## Installation
 
@@ -70,80 +76,103 @@ And another example on how communicate with `chat-gpt` through provided wrapper:
 
 ```typescript
 import FormatGPT from "format-gpt";
+import {Configuration, OpenAIApi} from "openai";
 
-// Initialize wrapper providing OpenAIApi instance
-const gptFormatter = new GptFormatter(openai);
+// Create OpenAIApi instance
+const configuration = new Configuration({
+    organization: "YOUR_ORGANIZATION_ID",
+    apiKey: "YOUR_API_KEY",
+});
+const openai = new OpenAIApi(configuration);
 
-// Use provided FormatGPT wrapper methods instead of standard OpenAIApi ones'
-// Below is an example using wrapper in place of `createChatCompletion` method.
+// Initialize GptFormatter providing OpenAIApi instance
+const formatter = new GptFormatter(openai);
 
-const yourFormattedOutput = await this.gptFormatter.makeRequestToChatGpt(requestParams, requestOptions, output);
+// Use provided FormatGPT wrapper methods instead of those from OpenAIApi.
+// Below is an example using `createChatCompletion` method.
+const result = await formatter.createChatCompletion(request, options, output);
 ```
 
-Parameters `requestParams` and `requestOptions` are the same ones as passed to `createChatCompletion` method.
+Parameters `request` and `options` are the same ones as passed to `createChatCompletion` method from `openai` library.
 
-Parameter `output` is where the magic happens. You to define how you would like the output to be structured and under the hood **FormatGPT** transforms your requests and prompts to achieve desired data format, etc.
+Parameter `output` is where the magic happens.  
+You define how you would like the output to be structured and under the hood **FormatGPT** transforms your requests and prompts to achieve desired result.
 
 ## API Reference
 
 The default export is `formatChatGptPrompt`.
 
-#### formatGptPrompt
+### _formatGptPrompt_
 
 ```typescript
 formatGptPrompt(prompt: string, output: IOutputConfig): string;
 ```
 
-##### props
-
 -   `prompt (string)` - content of the prompt for chat-gpt
 -   `output (IOutputConfig)`
-    -   `format (dtring)` - format of data retrieved from `chat-gpt`
+    -   `format (Format | string)` - format of data retrieved from `chat-gpt` (described below)
     -   `attributes: (IAttribute[])`- array with attribute definitions
-    -   `language (string)` - language code (determines language of retrieved data)
-    -   `columnSeparator (string)`- column separator (for CSV format, default: ",")
-    -   `rowSeparator (string)`- row separator (for CSV format. default: \n)
+    -   `language (string)` - language code (determines language of retrieved data, i.e. `"en"`, `"de"`)
+    -   `columnSeparator (string)`- column separator (for CSV format, default: `","`)
+    -   `rowSeparator (string)`- row separator (for CSV format. default: `\n`)
 
-#### formatGptMessages
+### _formatGptMessages_
 
 ```typescript
 formatGptMessages(messages: ChatCompletionRequestMessage[], output: IOutputConfig): ChatCompletionRequestMessage[];
 ```
 
-##### props
-
 -   `messages (ChatCompletionRequestMessage[])` - messages sent to chat-gpt api
 -   `output (IOutputConfig)` - output configuration
 
-#### formatGptRequest
+### _formatGptRequest_
 
 ```typescript
 formatGptRequest(request: CreateChatCompletionRequest, output: IOutputConfig): CreateChatCompletionRequest;
 ```
 
-##### props
-
 -   `request (CreateChatCompletionRequest)` - request config for chat-gpt api
 -   `output (IOutputConfig)` - output configuration
-    <br />
 
-#### Format
+### _Format_
 
 ```typescript
-type Format = "array" | "csv" | "html" | "json" | "json-list" | "markdown" | "table" | "text" | "xml" | "yaml";
+type Format = "string"; // You can use one of the predefined formats
 ```
 
-#### IAttribute
+Available predefined formats:
+
+-   `text` - plain text string
+-   `array` - javascript array (`["item1", "item2", "item3"]`)
+-   `csv` - text in CSV format (configure column and line separator with `IOutputConfig`)
+-   `html` - string containing html
+-   `html-table` - string containing table in html format
+-   `markdown` - string containing markdown
+-   `markdown-table` - string containing table in markdown format
+-   `json` - JSON object
+-   `json-list` - list of JSON objects (e.g. `[{ a: "A", b: "B"}, { a: "A", b: "B"}, ...]`)
+-   `xml` - string containing xml
+-   `yaml` - string containing yaml
+
+### _IAttribute_
 
 ```typescript
 interface IAttribute {
     name: string;
-    type: "string" | "number" | "boolean" | "date" | "integer" | "decimal" | Array<IAttribute>;
+    type: "string" | "number" | "boolean" | "date" | "integer" | "decimal" | IAttribute[];
     minLength?: number;
     maxLength?: number;
     custom?: string;
 }
 ```
+
+-   `name` - display name of the attribute in output data
+-   `type` - simple type or an array of attributes (`IAttribute[]`), also try experimenting with other types
+-   `minLength` - minimum length of the attribute (applicable to text)
+-   `maxLength` - maximum length of the attribute (applicable to text)
+-   `custom` - additional attrribute description (e.g. `"uppercase"`, `"truncate to 2 decimal places"`)
+
+<br />
 
 For more information on `ChatCompletionRequestMessage` and `CreateChatCompletionRequest` please refer [OpenAI documentation](https://platform.openai.com/docs/api-reference/chat/create#chat/create-messages).
 

@@ -52,11 +52,11 @@ export class Formatter {
     };
 
     public constructor(private openai: OpenAIApi) {
-        this.makeRequestToChatGpt = this.makeRequestToChatGpt.bind(this);
-        this.makeStreamRequestToChatGpt = this.makeStreamRequestToChatGpt.bind(this);
+        this.createChatCompletion = this.createChatCompletion.bind(this);
+        this.createChatCompletionStream = this.createChatCompletionStream.bind(this);
     }
 
-    public async makeRequestToChatGpt(
+    public async createChatCompletion(
         request: CreateChatCompletionRequest,
         options: AxiosRequestConfig<any> | undefined,
         output: IOutputConfig = {},
@@ -71,7 +71,7 @@ export class Formatter {
         return {id, content: outputParser(content)};
     }
 
-    public async makeStreamRequestToChatGpt(
+    public async createChatCompletionStream(
         request: CreateChatCompletionRequest,
         options: AxiosRequestConfig<any> | undefined,
         output: IOutputConfig = {},
@@ -239,6 +239,7 @@ export class Formatter {
                         ? await Promise.all(streamResult.chunks)
                         : streamResult.chunks;
                     const data = {id: streamResult.id, content};
+
                     $_.isFunction(onEnd) && onEnd(data);
                     resolve(data);
                 }, 10);
@@ -246,6 +247,7 @@ export class Formatter {
 
             stream.on("error", (error: Error) => {
                 const data = {id: streamResult.id, error};
+
                 $_.isFunction(onEnd) && onEnd(data);
                 reject(data);
             });
