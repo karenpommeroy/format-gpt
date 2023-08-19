@@ -111,10 +111,12 @@ formatGptPrompt(prompt: string, output: IOutputConfig): string;
 -   `prompt (string)` - content of the prompt for chat-gpt
 -   `output (IOutputConfig)`
     -   `format (Format | string)` - format of data retrieved from `chat-gpt` (described below)
-    -   `attributes: (IAttribute[])`- array with attribute definitions
-    -   `language (string)` - language code (determines language of retrieved data, i.e. `"en"`, `"de"`)
-    -   `columnSeparator (string)`- column separator (for CSV format, default: `","`)
-    -   `rowSeparator (string)`- row separator (for CSV format. default: `\n`)
+    -   `language (string)` - language code (determines language of the output, i.e. `"en"`, `"de"`)
+    -   `size (number)`- expected tokens count (used for reporting progress when streaming)
+    -   `options: (IFormatOptions)`
+        -   `attributes: (IAttribute[])`- array with attribute definitions
+        -   `columnSeparator (string)`- column separator (for CSV format, default: `","`)
+        -   `rowSeparator (string)`- row separator (for CSV format. default: `\n`)
 
 ### _formatGptMessages_
 

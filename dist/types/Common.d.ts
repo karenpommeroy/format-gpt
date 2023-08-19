@@ -1,16 +1,4 @@
-declare const ALL_FORMATS: readonly [
-    "array",
-    "csv",
-    "html",
-    "html-table",
-    "json",
-    "json-list",
-    "markdown",
-    "markdown-table",
-    "text",
-    "xml",
-    "yaml",
-];
+declare const ALL_FORMATS: readonly ["array", "csv", "html", "html-table", "json", "json-list", "markdown", "markdown-table", "text", "xml", "yaml"];
 export type FormatTuple = typeof ALL_FORMATS;
 export type Format = FormatTuple[number];
 export declare enum Formats {
@@ -24,7 +12,7 @@ export declare enum Formats {
     MARKDOWNTABLE = "markdown-table",
     TEXT = "text",
     XML = "xml",
-    YAML = "yaml",
+    YAML = "yaml"
 }
 export interface IOutputConfig {
     format?: Format;
