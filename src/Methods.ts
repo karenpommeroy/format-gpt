@@ -12,22 +12,16 @@ export const formatGptMessages = (messages: ChatCompletionRequestMessage[], outp
     const {format, options, language} = output;
     const prompts: Array<string> = [];
     const inMessages = [...messages];
-    const currentSystemMessages = $_.remove(
-        inMessages,
-        (message) => message.role === ChatCompletionRequestMessageRoleEnum.System,
-    );
+    const currentSystemMessages = $_.remove(inMessages, ["role", ChatCompletionRequestMessageRoleEnum.System]);
 
+    prompts.concat($_.compact($_.map(currentSystemMessages, "content")));
     prompts.push(getFormattedText(format, options));
 
     if (language) {
         prompts.push(getOutputLanguagePrompt(language));
     }
 
-    return [
-        ...currentSystemMessages,
-        {role: ChatCompletionRequestMessageRoleEnum.System, content: $_.join(prompts, " ")},
-        ...inMessages,
-    ];
+    return [{role: ChatCompletionRequestMessageRoleEnum.System, content: $_.join(prompts, " ")}, ...inMessages];
 };
 
 export const formatGptPrompt = (prompt: string, output: IOutputConfig = {}) => {

@@ -88,7 +88,7 @@ describe("Formatting ChatGPT Messages", () => {
             const systemMessages = $_.map($_.filter(result, ["role", "system"]), "content");
             const expected = [expect.stringContaining(FormatExpressions[item])];
 
-            expect(result).toHaveLength(messagesMock.length + 1);
+            expect(result).toHaveLength(messagesMock.length);
             expect(systemMessages).toEqual(expect.arrayContaining(expected));
         });
     });
@@ -99,7 +99,7 @@ describe("Formatting ChatGPT Messages", () => {
             const systemMessages = $_.map($_.filter(result, ["role", "system"]), "content");
             const expected = [expect.stringContaining(`You should write output in ${item.name} language only.`)];
 
-            expect(result).toHaveLength(messagesMock.length + 1);
+            expect(result).toHaveLength(messagesMock.length);
             expect(systemMessages).toEqual(expect.arrayContaining(expected));
         });
     });
@@ -133,7 +133,7 @@ describe("Formatting ChatGPT Requests", () => {
             const expected = [expect.stringContaining(FormatExpressions[item])];
 
             expect(result).toEqual(expect.objectContaining($_.omit(requestMock, "messages")));
-            expect(result.messages).toHaveLength(requestMock.messages.length + 1);
+            expect(result.messages).toHaveLength(requestMock.messages.length);
             expect(systemMessages).toEqual(expect.arrayContaining(expected));
         });
     });
@@ -145,7 +145,7 @@ describe("Formatting ChatGPT Requests", () => {
             const expected = [expect.stringContaining(`You should write output in ${item.name} language only.`)];
 
             expect(result).toEqual(expect.objectContaining($_.omit(requestMock, "messages")));
-            expect(result.messages).toHaveLength(requestMock.messages.length + 1);
+            expect(result.messages).toHaveLength(requestMock.messages.length);
             expect(systemMessages).toEqual(expect.arrayContaining(expected));
         });
     });
