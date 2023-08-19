@@ -14,7 +14,7 @@ export const formatGptMessages = (messages: ChatCompletionRequestMessage[], outp
     const inMessages = [...messages];
     const currentSystemMessages = $_.remove(inMessages, ["role", ChatCompletionRequestMessageRoleEnum.System]);
 
-    prompts.concat($_.compact($_.map(currentSystemMessages, "content")));
+    prompts.push(...$_.compact($_.map(currentSystemMessages, "content")));
     prompts.push(getFormattedText(format, options));
 
     if (language) {
