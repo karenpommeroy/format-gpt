@@ -25,13 +25,15 @@ export const getOutputLanguageMessage = (code: string): ChatCompletionRequestMes
     content: getOutputLanguagePrompt(code),
 });
 
-export const getFormattedMessage = (item: ChatCompletionRequestMessage, format: Format, options?: FormatOptions) =>
+export const getFormattedMessage = (item: ChatCompletionRequestMessage, format?: Format, options?: FormatOptions) =>
     $_.assign({}, item, {content: `${item.content} ${getFormattedText(format, options)}`});
 
-export const getFormattedText = (format: Format = "text", options?: FormatOptions) => {
+export const getFormattedText = (format?: Format, options?: FormatOptions) => {
     const parts = [];
 
-    parts.push(`You should write output only in ${FormatExpressions[format]} format.`);
+    if (format) {
+        parts.push(`You should write output only in ${FormatExpressions[format]} format.`);
+    }
 
     if (!options) return $_.join(parts, " ");
 
