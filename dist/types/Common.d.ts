@@ -1,4 +1,4 @@
-declare const ALL_FORMATS: readonly ["array", "csv", "html", "html-table", "json", "json-list", "markdown", "markdown-table", "text", "xml", "yaml"];
+declare const ALL_FORMATS: readonly ["array", "csv", "html", "html-table", "json", "json-list", "markdown", "gfm-markdown", "markdown-table", "text", "xml", "yaml"];
 export type FormatTuple = typeof ALL_FORMATS;
 export type Format = FormatTuple[number];
 export declare enum Formats {
@@ -9,6 +9,7 @@ export declare enum Formats {
     JSON = "json",
     JSONLIST = "json-list",
     MARKDOWN = "markdown",
+    GFMMARKDOWN = "gfm-markdown",
     MARKDOWNTABLE = "markdown-table",
     TEXT = "text",
     XML = "xml",
@@ -43,6 +44,7 @@ export declare const FormatExpressions: {
     json: string;
     "json-list": string;
     markdown: string;
+    "gfm-markdown": string;
     "markdown-table": string;
     text: string;
     xml: string;
