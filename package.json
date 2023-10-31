@@ -1,6 +1,6 @@
 {
   "name": "format-gpt",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "ChatGPT output formatter.",
   "repository": {
     "url": "https://github.com/karenpommeroy/format-gpt.git"
