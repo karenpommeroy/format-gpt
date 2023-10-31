@@ -1,5 +1,5 @@
 import $_ from "lodash";
-import {ChatCompletionRequestMessage} from "openai";
+import {ChatCompletionMessageParam} from "openai/resources";
 
 import {Format, FormatExpressions, IAttribute, ICsvFormatOptions, IFormatOptions} from "../src/Common";
 import {
@@ -32,7 +32,7 @@ const languages = [
     {code: "pl", name: "Polish"},
     {code: "de", name: "German"},
 ];
-const messageMock: ChatCompletionRequestMessage = {role: "user", content: "This is a user message test placeholder."};
+const messageMock: ChatCompletionMessageParam = {role: "user", content: "This is a user message test placeholder."};
 const attributesMock: IAttribute[] = [
     {name: "name", type: "string"},
     {name: "order", type: "integer"},

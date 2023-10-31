@@ -1,18 +1,18 @@
 import $_ from "lodash";
-import {ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum, CreateChatCompletionRequest} from "openai";
+import {ChatCompletionCreateParams, ChatCompletionMessage} from "openai/resources";
 
 import {IOutputConfig} from "./Common";
 import {getFormattedText, getOutputLanguagePrompt} from "./Utils";
 
-export const formatGptRequest = (request: CreateChatCompletionRequest, output?: IOutputConfig) => {
+export const formatGptRequest = (request: ChatCompletionCreateParams, output?: IOutputConfig) => {
     return $_.assign({}, request, {messages: formatGptMessages(request.messages, output)});
 };
 
-export const formatGptMessages = (messages: ChatCompletionRequestMessage[], output: IOutputConfig = {}) => {
+export const formatGptMessages = (messages: ChatCompletionMessage[], output: IOutputConfig = {}) => {
     const {format, options, language} = output;
     const prompts: Array<string> = [];
     const inMessages = [...messages];
-    const currentSystemMessages = $_.remove(inMessages, ["role", ChatCompletionRequestMessageRoleEnum.System]);
+    const currentSystemMessages = $_.remove(inMessages, ["role", "system"]);
 
     prompts.push(...$_.compact($_.map(currentSystemMessages, "content")));
     prompts.push(getFormattedText(format, options));
@@ -21,7 +21,7 @@ export const formatGptMessages = (messages: ChatCompletionRequestMessage[], outp
         prompts.push(getOutputLanguagePrompt(language));
     }
 
-    return [{role: ChatCompletionRequestMessageRoleEnum.System, content: $_.join(prompts, " ")}, ...inMessages];
+    return [{role: "system", content: $_.join(prompts, " ")}, ...inMessages];
 };
 
 export const formatGptPrompt = (prompt: string, output: IOutputConfig = {}) => {

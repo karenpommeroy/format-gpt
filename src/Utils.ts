@@ -1,5 +1,5 @@
 import $_ from "lodash";
-import {ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum} from "openai";
+import {ChatCompletionMessage} from "openai/resources";
 
 import {Format, FormatExpressions, FormatOptions, IAttribute, ICsvFormatOptions} from "./Common";
 
@@ -20,12 +20,12 @@ export const getOutputLanguageName = (code = "en") => {
 export const getOutputLanguagePrompt = (code: string) =>
     `You should write output in ${getOutputLanguageName(code)} language only.`;
 
-export const getOutputLanguageMessage = (code: string): ChatCompletionRequestMessage => ({
-    role: ChatCompletionRequestMessageRoleEnum.System,
+export const getOutputLanguageMessage = (code: string): ChatCompletionMessage => ({
+    role: "system",
     content: getOutputLanguagePrompt(code),
 });
 
-export const getFormattedMessage = (item: ChatCompletionRequestMessage, format?: Format, options?: FormatOptions) =>
+export const getFormattedMessage = (item: ChatCompletionMessage, format?: Format, options?: FormatOptions) =>
     $_.assign({}, item, {content: `${item.content} ${getFormattedText(format, options)}`});
 
 export const getFormattedText = (format?: Format, options?: FormatOptions) => {

@@ -1,7 +1,12 @@
 import {AxiosRequestConfig} from "axios";
-import {IncomingMessage} from "http";
 import $_ from "lodash";
-import {CreateChatCompletionRequest, OpenAIApi} from "openai";
+import {OpenAI} from "openai";
+import {RequestOptions} from "openai/core";
+import {
+    ChatCompletionChunk,
+    ChatCompletionCreateParamsNonStreaming,
+    ChatCompletionCreateParamsStreaming,
+} from "openai/resources";
 
 import {Formats, IOutputConfig} from "./Common";
 import {formatGptRequest} from "./Methods";
@@ -52,167 +57,147 @@ export class Formatter {
         [Formats.YAML]: $_.identity,
     };
 
-    public constructor(private openai: OpenAIApi) {
+    public constructor(private openai: OpenAI) {
         this.createChatCompletion = this.createChatCompletion.bind(this);
         this.createChatCompletionStream = this.createChatCompletionStream.bind(this);
     }
 
     public async createChatCompletion(
-        request: CreateChatCompletionRequest,
+        request: ChatCompletionCreateParamsNonStreaming,
         options: AxiosRequestConfig<any> | undefined,
         output: IOutputConfig = {},
     ): Promise<ChatGptResult> {
-        const newRequest = formatGptRequest(request, output);
+        const newRequest = formatGptRequest(request, output) as ChatCompletionCreateParamsNonStreaming;
         const outputParser = this.outputParsers[output.format ?? "text"] ?? $_.identity;
 
-        const response = await this.openai.createChatCompletion(newRequest, options as any);
-        const id = $_.get(response, "data.id");
-        const content = $_.get(response, "data.choices.0.message.content", "");
+        const response = await this.openai.chat.completions.create(newRequest, options as RequestOptions);
+        const id = $_.get(response, "id");
+        const content = $_.get(response, "choices.0.message.content", "");
 
         return {id, content: outputParser(content)};
     }
 
     public async createChatCompletionStream(
-        request: CreateChatCompletionRequest,
+        request: ChatCompletionCreateParamsStreaming,
         options: AxiosRequestConfig<any> | undefined,
         output: IOutputConfig = {},
         onUpdate?: UpdateCallback,
         onTransform?: TransformCallback,
         onEnd?: EndCallback,
     ): Promise<ChatGptResult> {
-        const newRequest = formatGptRequest($_.assign({}, request, {stream: true}), output);
+        const newRequest = formatGptRequest(
+            $_.assign({}, request, {stream: true}),
+            output,
+        ) as ChatCompletionCreateParamsStreaming;
         const newOptions: any = $_.assign({}, options, {responseType: "stream"});
-        const response = await this.openai.createChatCompletion(newRequest, newOptions);
-        const stream = response.data as unknown as IncomingMessage;
+        const response = await this.openai.chat.completions.create(newRequest, newOptions);
         const size = $_.get(output, "size");
 
-        return await new Promise<any>((resolve, reject) => {
+        return await new Promise<any>(async (resolve, reject) => {
             const streamResult: StreamResult = {id: "", chunks: []};
 
             let dataText = "";
 
-            const jsonStreamReader = async (data: Buffer) => {
+            const jsonStreamReader = async (data: ChatCompletionChunk) => {
                 const jsonEntryRegex = /(?<!^)(\{+.*\}+),?/gs;
-                const payloads = data.toString().split("\n\n");
-                for (const payload of payloads) {
-                    if (payload.includes("[DONE]")) return;
-                    if (payload.startsWith("data:")) {
-                        try {
-                            const data = JSON.parse(payload.replace("data: ", ""));
-                            const chunk = $_.get(data, "choices[0].delta.content");
 
-                            if (!chunk) continue;
+                try {
+                    const chunk = $_.get(data, "choices[0].delta.content");
 
-                            dataText += chunk;
+                    if (!chunk) return;
 
-                            const matches = dataText.match(jsonEntryRegex);
-                            const nextMatch = $_.first(matches);
+                    dataText += chunk;
 
-                            if (!nextMatch) continue;
+                    const matches = dataText.match(jsonEntryRegex);
+                    const nextMatch = $_.first(matches);
 
-                            try {
-                                const entry = JSON.parse($_.trimEnd(nextMatch, " ,\r\n\t"));
-                                const entryWithId = {id: $_.toString(Date.now()), ...entry};
-                                const entryAfterTransform = $_.isFunction(onTransform)
-                                    ? onTransform(entryWithId)
-                                    : entryWithId;
+                    if (!nextMatch) return;
 
-                                dataText = $_.replace(dataText, nextMatch, "");
+                    try {
+                        const entry = JSON.parse($_.trimEnd(nextMatch, " ,\r\n\t"));
+                        const entryWithId = {id: $_.toString(Date.now()), ...entry};
+                        const entryAfterTransform = $_.isFunction(onTransform) ? onTransform(entryWithId) : entryWithId;
 
-                                streamResult.id = data.id;
-                                streamResult.chunks.push(entryAfterTransform);
+                        dataText = $_.replace(dataText, nextMatch, "");
 
-                                if (!$_.isFunction(onUpdate)) continue;
+                        streamResult.id = data.id;
+                        streamResult.chunks.push(entryAfterTransform);
 
-                                onUpdate({
-                                    id: data.id,
-                                    data: $_.isFunction(onTransform) ? await entryAfterTransform : entryAfterTransform,
-                                    progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined,
-                                });
-                            } catch (error) {
-                                // Chunk incomplete, parsing not possible
-                                continue;
-                            }
-                        } catch (error) {
-                            console.log(`Chunk could not be parsed.\n${error}`);
-                        }
+                        if (!$_.isFunction(onUpdate)) return;
+
+                        onUpdate({
+                            id: data.id,
+                            data: $_.isFunction(onTransform) ? await entryAfterTransform : entryAfterTransform,
+                            progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined,
+                        });
+                    } catch (error) {
+                        // Chunk incomplete, parsing not possible
+                        return;
                     }
+                } catch (error) {
+                    console.log(`Chunk could not be parsed.\n${error}`);
+                    return;
                 }
             };
 
-            const arrayStreamReader = async (data: Buffer) => {
+            const arrayStreamReader = async (data: ChatCompletionChunk) => {
                 const arrayEntryRegex = /\[(?:.*)\][,|\n]+/g;
-                const payloads = data.toString().split("\n\n");
-                for (const payload of payloads) {
-                    if (payload.includes("[DONE]")) return;
-                    if (payload.startsWith("data:")) {
-                        try {
-                            const data = JSON.parse(payload.replace("data: ", ""));
-                            const chunk = $_.get(data, "choices[0].delta.content");
+                try {
+                    const chunk = $_.get(data, "choices[0].delta.content");
 
-                            if (!chunk) continue;
+                    if (!chunk) return;
 
-                            dataText += chunk;
+                    dataText += chunk;
 
-                            const matches = dataText.match(arrayEntryRegex);
-                            const nextMatch = $_.first(matches);
+                    const matches = dataText.match(arrayEntryRegex);
+                    const nextMatch = $_.first(matches);
 
-                            if (!nextMatch) continue;
+                    if (!nextMatch) return;
 
-                            try {
-                                const entry = JSON.parse($_.trim(nextMatch, " ,\r\n\t"));
-                                const entryAfterTransform = $_.isFunction(onTransform) ? onTransform(entry) : entry;
+                    try {
+                        const entry = JSON.parse($_.trim(nextMatch, " ,\r\n\t"));
+                        const entryAfterTransform = $_.isFunction(onTransform) ? onTransform(entry) : entry;
 
-                                dataText = $_.replace(dataText, nextMatch, "");
+                        dataText = $_.replace(dataText, nextMatch, "");
 
-                                streamResult.id = data.id;
-                                streamResult.chunks.push(entryAfterTransform);
+                        streamResult.id = data.id;
+                        streamResult.chunks.push(entryAfterTransform);
 
-                                if (!$_.isFunction(onUpdate)) continue;
+                        if (!$_.isFunction(onUpdate)) return;
 
-                                onUpdate({
-                                    id: data.id,
-                                    data: $_.isFunction(onTransform) ? await entryAfterTransform : entryAfterTransform,
-                                    progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined,
-                                });
-                            } catch (error) {
-                                // Chunk incomplete, parsing not possible
-                                continue;
-                            }
-                        } catch (error) {
-                            console.log(`Chunk could not be parsed.\n${error}`);
-                            continue;
-                        }
+                        onUpdate({
+                            id: data.id,
+                            data: $_.isFunction(onTransform) ? await entryAfterTransform : entryAfterTransform,
+                            progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined,
+                        });
+                    } catch (error) {
+                        // Chunk incomplete, parsing not possible
+                        return;
                     }
+                } catch (error) {
+                    console.log(`Chunk could not be parsed.\n${error}`);
+                    return;
                 }
             };
 
-            const textStreamReader = (data: Buffer) => {
-                const payloads = data.toString().split("\n\n");
-                for (const payload of payloads) {
-                    if (payload.includes("[DONE]")) return;
-                    if (payload.startsWith("data:")) {
-                        try {
-                            const data = JSON.parse(payload.replace("data: ", ""));
-                            const chunk = $_.get(data, "choices[0].delta.content");
+            const textStreamReader = (data: ChatCompletionChunk) => {
+                try {
+                    const chunk = $_.get(data, "choices[0].delta.content") as any;
+                    if (!chunk) return;
 
-                            if (!chunk) continue;
+                    streamResult.id = data.id;
+                    streamResult.chunks += chunk;
 
-                            streamResult.id = data.id;
-                            streamResult.chunks += chunk;
+                    if (!$_.isFunction(onUpdate)) return;
 
-                            if (!$_.isFunction(onUpdate)) continue;
-
-                            onUpdate({
-                                id: data.id,
-                                data: chunk,
-                                progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined,
-                            });
-                        } catch (error) {
-                            console.log(`Chunk could not be parsed.\n${error}`);
-                            continue;
-                        }
-                    }
+                    onUpdate({
+                        id: data.id,
+                        data: chunk,
+                        progress: !$_.isNil(size) ? $_.size(streamResult.chunks) / size : undefined,
+                    });
+                } catch (error) {
+                    console.log(`Chunk could not be parsed.\n${error}`);
+                    return;
                 }
             };
 
@@ -233,34 +218,24 @@ export class Formatter {
 
             const reader = outputStreamReaders[$_.get(output, "format", Formats.TEXT)];
 
-            stream.on("data", reader);
-
-            stream.on("end", () => {
-                setTimeout(async () => {
-                    const content = $_.isFunction(onTransform)
-                        ? await Promise.all(streamResult.chunks)
-                        : streamResult.chunks;
-                    const data = {id: streamResult.id, content};
-
-                    $_.isFunction(onEnd) && onEnd(data);
-                    resolve(data);
-                }, 10);
-            });
-
-            stream.on("error", (error: Error) => {
-                const data = {id: streamResult.id, error};
-
-                $_.isFunction(onEnd) && onEnd(data);
-                reject(data);
-            });
-
-            const signal = $_.get(options, "signal") as AbortSignal;
+            const signal = $_.get(response.controller, "signal") as AbortSignal;
             if (!signal) return;
 
             signal.addEventListener("abort", () => {
-                response.request.abort();
+                response.controller.abort();
                 reject({message: signal.reason});
             });
+
+            for await (const part of response) {
+                reader(part);
+            }
+
+            const content = $_.isFunction(onTransform) ? await Promise.all(streamResult.chunks) : streamResult.chunks;
+            const data = {id: streamResult.id, content};
+
+            $_.isFunction(onEnd) && onEnd(data);
+
+            resolve(data);
         });
     }
 }

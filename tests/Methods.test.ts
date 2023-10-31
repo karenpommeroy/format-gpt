@@ -1,5 +1,5 @@
 import $_ from "lodash";
-import {ChatCompletionRequestMessage, CreateChatCompletionRequest} from "openai";
+import {ChatCompletionCreateParams, ChatCompletionMessage} from "openai/resources";
 
 import {Format, FormatExpressions, IFormatOptions} from "../src/Common";
 import {formatGptMessages, formatGptPrompt, formatGptRequest} from "../src/Methods";
@@ -37,11 +37,11 @@ const optionsMock: IFormatOptions = {
 };
 const systemMessageMock = "This is a system message test placeholder.";
 const userMessageMock = "This is a user message test placeholder.";
-const messagesMock: Array<ChatCompletionRequestMessage> = [
+const messagesMock: Array<ChatCompletionMessage> = [
     {role: "system", content: systemMessageMock},
     {role: "user", content: userMessageMock},
 ];
-const requestMock: CreateChatCompletionRequest = {
+const requestMock: ChatCompletionCreateParams = {
     model: "gpt-3.5-turbo",
     messages: messagesMock,
     temperature: 0.5,

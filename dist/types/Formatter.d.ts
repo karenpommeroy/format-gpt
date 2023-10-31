@@ -1,5 +1,6 @@
 import { AxiosRequestConfig } from "axios";
-import { CreateChatCompletionRequest, OpenAIApi } from "openai";
+import { OpenAI } from "openai";
+import { ChatCompletionCreateParamsNonStreaming, ChatCompletionCreateParamsStreaming } from "openai/resources";
 import { IOutputConfig } from "./Common";
 export type StreamResult = {
     id: string;
@@ -28,7 +29,7 @@ export type EndCallbackParams = {
 export declare class Formatter {
     private openai;
     private outputParsers;
-    constructor(openai: OpenAIApi);
-    createChatCompletion(request: CreateChatCompletionRequest, options: AxiosRequestConfig<any> | undefined, output?: IOutputConfig): Promise<ChatGptResult>;
-    createChatCompletionStream(request: CreateChatCompletionRequest, options: AxiosRequestConfig<any> | undefined, output?: IOutputConfig, onUpdate?: UpdateCallback, onTransform?: TransformCallback, onEnd?: EndCallback): Promise<ChatGptResult>;
+    constructor(openai: OpenAI);
+    createChatCompletion(request: ChatCompletionCreateParamsNonStreaming, options: AxiosRequestConfig<any> | undefined, output?: IOutputConfig): Promise<ChatGptResult>;
+    createChatCompletionStream(request: ChatCompletionCreateParamsStreaming, options: AxiosRequestConfig<any> | undefined, output?: IOutputConfig, onUpdate?: UpdateCallback, onTransform?: TransformCallback, onEnd?: EndCallback): Promise<ChatGptResult>;
 }
