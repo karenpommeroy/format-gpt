@@ -222,7 +222,6 @@ export class Formatter {
             if (!signal) return;
 
             signal.addEventListener("abort", () => {
-                response.controller.abort();
                 reject({message: signal.reason});
             });
 
