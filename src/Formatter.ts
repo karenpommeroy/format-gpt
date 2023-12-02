@@ -7,6 +7,7 @@ import {
     ChatCompletionCreateParamsNonStreaming,
     ChatCompletionCreateParamsStreaming,
 } from "openai/resources";
+import {Stream} from "openai/streaming";
 
 import {Formats, IOutputConfig} from "./Common";
 import {formatGptRequest} from "./Methods";
@@ -84,15 +85,18 @@ export class Formatter {
         onUpdate?: UpdateCallback,
         onTransform?: TransformCallback,
         onEnd?: EndCallback,
+        signal?: AbortSignal,
     ): Promise<ChatGptResult> {
         const newRequest = formatGptRequest(
             $_.assign({}, request, {stream: true}),
             output,
         ) as ChatCompletionCreateParamsStreaming;
-        const newOptions: any = $_.assign({}, options, {responseType: "stream"});
-        const response = await this.openai.chat.completions.create(newRequest, newOptions);
+        const newOptions: any = $_.assign(options, {responseType: "stream"});
+        const response = (await this.openai.chat.completions.create(
+            newRequest,
+            newOptions,
+        )) as Stream<OpenAI.Chat.Completions.ChatCompletionChunk>;
         const size = $_.get(output, "size");
-
         return await new Promise<any>(async (resolve, reject) => {
             const streamResult: StreamResult = {id: "", chunks: []};
 
@@ -103,7 +107,6 @@ export class Formatter {
 
                 try {
                     const chunk = $_.get(data, "choices[0].delta.content");
-
                     if (!chunk) return;
 
                     dataText += chunk;
@@ -218,17 +221,18 @@ export class Formatter {
 
             const reader = outputStreamReaders[$_.get(output, "format", Formats.TEXT)];
 
-            const signal = $_.get(response.controller, "signal") as AbortSignal;
-            if (!signal) return;
-
-            signal.addEventListener("abort", () => {
-                reject({message: signal.reason});
-            });
-
+            // const controller = $_.get(response.controller) as AbortController;
+            if (signal) {
+                signal.addEventListener("abort", () => {
+                    response.controller.abort("cancel");
+                    // reject({message: signal.reason});
+                });
+            }
             for await (const part of response) {
+                if (response.controller.signal.aborted) break;
+
                 reader(part);
             }
-
             const content = $_.isFunction(onTransform) ? await Promise.all(streamResult.chunks) : streamResult.chunks;
             const data = {id: streamResult.id, content};
 

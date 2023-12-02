@@ -31,5 +31,5 @@ export declare class Formatter {
     private outputParsers;
     constructor(openai: OpenAI);
     createChatCompletion(request: ChatCompletionCreateParamsNonStreaming, options: AxiosRequestConfig<any> | undefined, output?: IOutputConfig): Promise<ChatGptResult>;
-    createChatCompletionStream(request: ChatCompletionCreateParamsStreaming, options: AxiosRequestConfig<any> | undefined, output?: IOutputConfig, onUpdate?: UpdateCallback, onTransform?: TransformCallback, onEnd?: EndCallback): Promise<ChatGptResult>;
+    createChatCompletionStream(request: ChatCompletionCreateParamsStreaming, options: AxiosRequestConfig<any> | undefined, output?: IOutputConfig, onUpdate?: UpdateCallback, onTransform?: TransformCallback, onEnd?: EndCallback, signal?: AbortSignal): Promise<ChatGptResult>;
 }

@@ -1,5 +1,7 @@
 import $_ from "lodash";
-import {ChatCompletionCreateParams, ChatCompletionMessage} from "openai/resources";
+import {
+    ChatCompletionContentPart, ChatCompletionCreateParams, ChatCompletionMessageParam
+} from "openai/resources";
 
 import {IOutputConfig} from "./Common";
 import {getFormattedText, getOutputLanguagePrompt} from "./Utils";
@@ -8,9 +10,9 @@ export const formatGptRequest = (request: ChatCompletionCreateParams, output?: I
     return $_.assign({}, request, {messages: formatGptMessages(request.messages, output)});
 };
 
-export const formatGptMessages = (messages: ChatCompletionMessage[], output: IOutputConfig = {}) => {
+export const formatGptMessages = (messages: ChatCompletionMessageParam[], output: IOutputConfig = {}) => {
     const {format, options, language} = output;
-    const prompts: Array<string> = [];
+    const prompts: Array<string | ChatCompletionContentPart[]> = [];
     const inMessages = [...messages];
     const currentSystemMessages = $_.remove(inMessages, ["role", "system"]);
 

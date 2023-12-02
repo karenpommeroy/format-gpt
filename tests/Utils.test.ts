@@ -1,17 +1,13 @@
 import $_ from "lodash";
 import {ChatCompletionMessageParam} from "openai/resources";
 
-import {Format, FormatExpressions, IAttribute, ICsvFormatOptions, IFormatOptions} from "../src/Common";
 import {
-    getAttributesText,
-    getFormattedMessage,
-    getFormattedText,
-    getOutputLanguageMessage,
-    getOutputLanguageName,
-    getOutputLanguagePrompt,
-    isAttributeArray,
-    isCsvFormatOptions,
-    isFormatOptions,
+    Format, FormatExpressions, IAttribute, ICsvFormatOptions, IFormatOptions
+} from "../src/Common";
+import {
+    csvToArray, getAttributesText, getFormattedMessage, getFormattedText, getOutputLanguageMessage,
+    getOutputLanguageName, getOutputLanguagePrompt, isAttributeArray, isCsvFormatOptions,
+    isFormatOptions
 } from "../src/Utils";
 
 const formats: Format[] = [
@@ -43,6 +39,10 @@ const attributesMock: IAttribute[] = [
     {name: "description", type: "string", minLength: 50, maxLength: 100},
     {name: "info", type: "string", custom: "custom placeholder"},
     {name: "summary", type: "string", minLength: 25, maxLength: 50, custom: "custom placeholder"},
+    {name: "attributes", type: [
+        {name: "attribute1", type: "string"},
+        {name: "attribute2", type: "string"},
+    ]}
 ];
 const optionsMock: ICsvFormatOptions = {
     attributes: attributesMock,
@@ -100,6 +100,7 @@ describe("Utils", () => {
             "description (string, min length 50 characters and max length 100 characters)",
             "info (string, custom placeholder)",
             "summary (string, min length 25 characters and max length 50 characters, custom placeholder)",
+            "attributes (array: attribute1 (string), attribute2 (string))",
         ];
         const attrTxt = "You should include the following in it:";
         const colSeparator = "You should use ; as column separator.";
@@ -146,18 +147,23 @@ describe("Utils", () => {
             "description (string, min length 50 characters and max length 100 characters)",
             "info (string, custom placeholder)",
             "summary (string, min length 25 characters and max length 50 characters, custom placeholder)",
+            "attributes (array: attribute1 (string), attribute2 (string))",
         ];
 
         $_.forEach(expected, (item) => expect(result).toEqual(expect.stringContaining(item)));
     });
 
+    it("should properly convert CSV to array when empty string is passed", () => {
+        const csvArray = csvToArray("", undefined, ";");
+        expect(csvArray.header).toHaveLength(0);
+        expect(csvArray.rows).toHaveLength(0);
+    });
+
     it("should convert CSV to array", () => {
-        // const csv =  csvMock.map(
-        //     row => row.map(item => (typeof item === "string" ? `"${item}"` : item)).join(";")).join("\n");
-        // const csvArray = csvToArray(csv, undefined, ";");
-        // console.log(JSON.stringify(csv));
-        // expect(csvArray.header).toHaveLength(4);
-        // expect(csvArray.rows).toHaveLength(3);
+        const csv =  $_.map(csvMock, (row) => $_.map(row, (item) => typeof item === "string" ? `"${item}"` : item).join(";")).join("\n");
+        const csvArray = csvToArray(csv, undefined, ";");
+        expect(csvArray.header).toHaveLength(4);
+        expect(csvArray.rows).toHaveLength(4);
     });
 
     it("should recognize FormatOptions", () => {

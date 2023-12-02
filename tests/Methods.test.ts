@@ -1,5 +1,5 @@
 import $_ from "lodash";
-import {ChatCompletionCreateParams, ChatCompletionMessage} from "openai/resources";
+import {ChatCompletionCreateParams, ChatCompletionMessageParam} from "openai/resources";
 
 import {Format, FormatExpressions, IFormatOptions} from "../src/Common";
 import {formatGptMessages, formatGptPrompt, formatGptRequest} from "../src/Methods";
@@ -37,7 +37,7 @@ const optionsMock: IFormatOptions = {
 };
 const systemMessageMock = "This is a system message test placeholder.";
 const userMessageMock = "This is a user message test placeholder.";
-const messagesMock: Array<ChatCompletionMessage> = [
+const messagesMock: Array<ChatCompletionMessageParam> = [
     {role: "system", content: systemMessageMock},
     {role: "user", content: userMessageMock},
 ];

@@ -2870,7 +2870,7 @@ __metadata:
     eslint-webpack-plugin: "npm:^4.0.1"
     jest: "npm:^29.7.0"
     lodash: "npm:^4.17.21"
-    openai: "npm:^4.14.0"
+    openai: "npm:^4.20.1"
     prettier: "npm:^2.8.8"
     terser-webpack-plugin: "npm:^5.3.9"
     ts-jest: "npm:^29.1.1"
@@ -4508,9 +4508,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:^4.14.0":
-  version: 4.14.0
-  resolution: "openai@npm:4.14.0"
+"openai@npm:^4.20.1":
+  version: 4.20.1
+  resolution: "openai@npm:4.20.1"
   dependencies:
     "@types/node": "npm:^18.11.18"
     "@types/node-fetch": "npm:^2.6.4"
@@ -4523,7 +4523,7 @@ __metadata:
     web-streams-polyfill: "npm:^3.2.1"
   bin:
     openai: bin/cli
-  checksum: 30542f58b2a69c2593dfa0042c3f99a25ef570fc36eb852b62c22e1507a5462692fc99c0dd08081e43dfcb36c4cd76a3cb53754cd7b4b1882efa99aff4e96363
+  checksum: c80c08c9cc39e64114e8bd41f8580223638476aa9fe5e11a5b505128350fcceb1fe6886004c9b37431b4520bec91815e897f545335b24f8f15bdd69c7185af45
   languageName: node
   linkType: hard
 

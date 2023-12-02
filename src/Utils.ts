@@ -1,5 +1,5 @@
 import $_ from "lodash";
-import {ChatCompletionMessage} from "openai/resources";
+import {ChatCompletionMessageParam} from "openai/resources";
 
 import {Format, FormatExpressions, FormatOptions, IAttribute, ICsvFormatOptions} from "./Common";
 
@@ -20,12 +20,12 @@ export const getOutputLanguageName = (code = "en") => {
 export const getOutputLanguagePrompt = (code: string) =>
     `You should write output in ${getOutputLanguageName(code)} language only.`;
 
-export const getOutputLanguageMessage = (code: string): ChatCompletionMessage => ({
+export const getOutputLanguageMessage = (code: string): ChatCompletionMessageParam => ({
     role: "system",
     content: getOutputLanguagePrompt(code),
 });
 
-export const getFormattedMessage = (item: ChatCompletionMessage, format?: Format, options?: FormatOptions) =>
+export const getFormattedMessage = (item: ChatCompletionMessageParam, format?: Format, options?: FormatOptions) =>
     $_.assign({}, item, {content: `${item.content} ${getFormattedText(format, options)}`});
 
 export const getFormattedText = (format?: Format, options?: FormatOptions) => {
@@ -77,8 +77,8 @@ export const getAttributesText = (attributes: IAttribute[]): string => {
     return $_.join(attributeStrings, ", ");
 };
 
-export const csvToArray = (strData: string, header = [], strDelimiter = ","): {header: any[]; rows: any[][]} => {
-    if (!strData) return {header, rows: []};
+export const csvToArray = (strData: string, header?: string[], strDelimiter = ","): {header: any[]; rows: any[][]} => {
+    if (!strData) return {header: [], rows: []};
 
     const objPattern = new RegExp(
         `(\\${strDelimiter}|\\r?\\n|\\r|^)(?:"([^"]*(?:""[^"]*)*)"|([^"\\${strDelimiter}\\r\\n]*))`,
@@ -107,7 +107,7 @@ export const csvToArray = (strData: string, header = [], strDelimiter = ","): {h
     }
 
     return {
-        header: header ?? $_.first(arrData),
-        rows: $_.omitBy(header ? arrData : $_.tail(arrData), $_.isEmpty) as any[][],
+        header: header ?? $_.first(arrData) as any[],
+        rows: header ? arrData : $_.tail(arrData),
     };
 };

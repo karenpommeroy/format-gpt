@@ -20,7 +20,7 @@
   "dependencies": {
     "axios": "^1.6.2",
     "lodash": "^4.17.21",
-    "openai": "^4.14.0"
+    "openai": "^4.20.1"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
@@ -44,21 +44,6 @@
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testEnvironment": "node",
-    "testRegex": "/tests/.*\\.(test|spec)?\\.(ts|tsx)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
   },
   "packageManager": "yarn@4.0.2"
 }
